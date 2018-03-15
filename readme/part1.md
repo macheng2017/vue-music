@@ -32,9 +32,9 @@ Standard (https://github.com/standard/standard)
 
 .gitkeep 是保证如果是空文件可以上传到GitHub上而不被过滤掉
 
-修改App.vue
+## 修改App.vue
 
-
+```javascript
 <template>
 <div id="app">
 hello world
@@ -52,7 +52,14 @@ hello world
 color:$color-theme
 }
 </style>
+```
+### 需要修改的位置
+```JavaScript
+ <style lang="stylus" scoped rel="stylesheet/stylus" > 这一句加上之后编译器报错
+```
+![image](./images/error1.png)
 
+不知道为什么
 
 
 
@@ -70,10 +77,40 @@ user-select: none
 background: $color-background
 color: $color-text
 
+使用的是
+[stylus](https://github.com/stylus/stylus/)
+
+npm install stylus --save
+npm install stylus-loader
+脚手架不会明确安装stylus 与 stylus-loader
+定义颜色规范 字体规范
+
+修改eslink
+
+* 不检测文件末尾有空行
+* 在左括号前面加上空格
+     'eol-last':0,
+     'space-before-function-paren':0
+
+![image](./images/)
+
+![image](./images/eslink-add.png)
+
+> 在webpack.base.conf.js 配置了别名alisa
+
+```JavaScript
+  resolve: {
+    extensions: ['.js', '.vue', '.json'],
+    alias: {
+      '@': resolve('src'),
+      'common':resolve('src/common'),
+    }
+  },
+```
+    'common':resolve('src/common'),
 
 
-
-
+### 好了运行npm run dev 试试
 
 
 
