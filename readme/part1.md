@@ -59,16 +59,20 @@ color:$color-theme
 ```
 ![image](./images/error1.png)
 
-不知道为什么
+* 为什么?
+* 原因是我们使用了stylus但是
+脚手架不会明确安装stylus 与 stylus-loader
+   * npm install stylus --save
+   * npm install stylus-loader
 
 
-
-样式文件
+>样式文件使用的是
+[stylus](https://github.com/stylus/stylus/)
 
 base 是基础的样式文件
 
+```JavaScript
 @import "variable.styl"
-
 body, html
 line-height: 1
 font-family: 'PingFang SC', 'STHeitiSC-Light', 'Helvetica-Light', arial, sans-serif, 'Droid Sans Fallback'
@@ -76,16 +80,14 @@ user-select: none
 -webkit-tap-highlight-color: transparent
 background: $color-background
 color: $color-text
+```
+>为什么要使用stylus编写css样式?
+>
+>参考官方文档
 
-使用的是
-[stylus](https://github.com/stylus/stylus/)
-
-npm install stylus --save
-npm install stylus-loader
-脚手架不会明确安装stylus 与 stylus-loader
 定义颜色规范 字体规范
 
-修改eslink
+## 修改eslink
 
 * 不检测文件末尾有空行
 * 在左括号前面加上空格
