@@ -199,6 +199,20 @@ If it times out, the err will be an Error object whose message is Timeout.
 Returns a function that, when called, will cancel the in-progress jsonp request (fn won't be called).
 
 ***
+### NOTE:
+1. opts 中有一个是回调函数,也就是后端与前段预定一个字段作为回调 默认是callback
+
+> 问题是怎么寻找约定的callback字段?
+
+通过下面的两幅图可以知道 qqmusic 预定字段是
+- 一般在console中js XHR html 其他这个几个选项卡中的请求链接
+- 在链接中需找带有.fcg的请求路径
+- jsonpCallback:jsonp1
+- response: jsonp1(....)开头的所以,字段就是jsonp1
+
+![image](./images/jsonp-callback.png)
+![image](./images/res-callback.png)
+
 callback 以后会改成promise实现
 
 引用 jsonp
@@ -269,3 +283,60 @@ tip：
 
 
 # part 2.2 使用jsonp抓取数据
+
+1. 给每个部分封装获取相关数据的方法
+
+recommend
+
+
+import jsonp from "common/js/jsonp.js"
+
+
+细节
+
+1. 这里引用的时候没有加{ }是因为定义的时候没有使用default 如果定义js 使用export 中只有一个函数就可以加上default,在import 的时候就不用家{ }因为在上面模块中就定义了一个函数
+2. 如果在函数中顶一个多个 export cost aaa 我们在引用的时候 import 就需要添加 {函数/变量名称,... }
+
+
+通过抓取多个接口发现 qqmusic 有些接口的参数是不变的也就是公用参数,可以新建一个公用的参数工具,
+这样就避免为每一个请求重复定义一些同样的参数
+
+```JavaScript
+export const commonParmas = {
+  g_tk: 5381,
+  inCharset: 'utf-8',
+  outCharset: 'utf-8',
+  format: 'json',
+  notice: 0,
+  needNewCode: 1,
+  uin: 0
+}
+export const options = {
+  params: 'jsonpCallback'
+}
+// 所有接口返回值 code:0,我们配置了一个更语义化的常量
+export const ERR_OK = 0
+```
+合并两个对象中的属性
+
+object2 = Object.assign({},object1)
+[Object.assign](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign)
+
+```JavaScript
+// recommend.js 定义推荐组件获取数据
+import jsonp from 'common/js/jsonp'
+import {commonParmas, options} from './config'
+export function getRecommend () {
+  const url = 'https://c.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg'
+  // Object.assign将对象和一堆参数合并成一个对象
+  const data = Object.assign({}, commonParmas, {
+    needNewCode: 1,
+    platform: 'h5',
+    uin: 0
+  })
+  return jsonp(url, data, options)
+}
+```
+
+
+
