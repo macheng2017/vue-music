@@ -70,7 +70,8 @@ export default{
 >NOTE: 命名: 将m-header的组件名在注册组件的时候换成了驼峰命名
 >
 >html中大小写不敏感m-header 在js当中m-header不支持只能用驼峰
-![image](./readme/images/error2.png)
+
+![image](./images/error2.png)
 
 webpack.base.conf.js
 别名的配置
