@@ -215,6 +215,7 @@ import originJSONP from 'jsonp'
  * @param {*} option
  */
 export default function jsonp (url, data, option) {
+  url += (url.indexof('?') < 0) ? '?' : '&' + param(data)
   return new Promise((resolve, reject) => {
     originJSONP(url, option, (err, data) => {
       if (!err) {
@@ -228,8 +229,9 @@ export default function jsonp (url, data, option) {
 /**
  *将传入的data对象也就是将要传入的url参数放入到url当中
  */
+
 function param (data) {
-let url = ''
+  let url = ''
   for (const k in data) {
     let value = data[k] !== undefined ? data[k] : ''
     // 将参数添加到url之后
@@ -237,12 +239,33 @@ let url = ''
   }
   // 需要删除多余的&
   return url ? url.substring(1) : ''
-
 }
 ```
 
 tip：
-  
-  for in 遍历数组返回的是 索引
-  [数组遍历方法](http://www.xugaoyang.com/post/5a62fb1d1d92b0371315ab35)
 
+  * for in 遍历数组返回的是 索引
+    遍历对象返回的是属性名
+    [数组遍历方法](http://www.xugaoyang.com/post/5a62fb1d1d92b0371315ab35)
+  * url += `&${k}=${encodeURIComponent(value)}
+  > 其中${k} <=> "+ k +" 连字符
+  * 注意 ` ` ES6语法,这个还是键盘上Esc下的符号,这个是字符串模板使用这个可以,粘贴大段可以保留换行以及缩进
+  * encodeURIComponent可以将字符特别是中文字符进行十六进制编码
+  * url += (url.indexof('?') < 0) ? '?' : '&' + param(data) 这是url字符串拼接的高频小套路
+
+下面的也是高频小套路
+   ```JavaScript
+   function param (data) {
+  let url = ''
+  for (const k in data) {
+    let value = data[k] !== undefined ? data[k] : ''
+    // 将参数添加到url之后
+    url += `&${k}=${encodeURIComponent(value)}`
+  }
+  // 需要删除多余的&
+  return url ? url.substring(1) : ''
+}
+```
+
+
+# part 2.2 使用jsonp抓取数据

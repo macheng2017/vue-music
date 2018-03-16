@@ -8,6 +8,7 @@ import originJSONP from 'jsonp'
  * @param {*} option
  */
 export default function jsonp (url, data, option) {
+  url += (url.indexof('?') < 0) ? '?' : '&' + param(data)
   return new Promise((resolve, reject) => {
     originJSONP(url, option, (err, data) => {
       if (!err) {
@@ -21,8 +22,9 @@ export default function jsonp (url, data, option) {
 /**
  *将传入的data对象也就是将要传入的url参数放入到url当中
  */
+
 function param (data) {
-let url = ''
+  let url = ''
   for (const k in data) {
     let value = data[k] !== undefined ? data[k] : ''
     // 将参数添加到url之后
@@ -30,5 +32,4 @@ let url = ''
   }
   // 需要删除多余的&
   return url ? url.substring(1) : ''
-
 }
