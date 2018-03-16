@@ -241,3 +241,8 @@ let url = ''
 }
 ```
 
+tip：
+  
+  for in 遍历数组返回的是 索引
+  [数组遍历方法](http://www.xugaoyang.com/post/5a62fb1d1d92b0371315ab35)
+
