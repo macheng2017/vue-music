@@ -1,6 +1,5 @@
 <template>
-  <div></div>
-
+ <div>搜索</div>
 </template>
 
 <script>

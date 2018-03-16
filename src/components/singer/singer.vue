@@ -1,6 +1,5 @@
 <template>
-  <div></div>
-
+ <div>歌手</div>
 </template>
 
 <script>

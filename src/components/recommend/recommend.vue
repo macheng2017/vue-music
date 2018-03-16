@@ -1,11 +1,12 @@
 <template>
-  <div></div>
-
+ <div>
+    推荐
+ </div>
 </template>
 
 <script>
 export default {
-  name: 'HelloWorld',
+  name: '',
   data () {
     return {
 
