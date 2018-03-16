@@ -26,9 +26,58 @@ package.json
       在main.js 中import babel-polyfill
 
 ```JavaScript
+import 'babel-polyfill' //一定要写到最开始的 babel-runtime 是不用写在代码中,在编译过程中自动调用
 import fastclick from 'fastclick'
 /* 去掉300毫秒的延时 */
-fastclick.attach(document.body)
+fastclick.attach(document.body)//推荐用法
 ```
-[参考](http://blog.csdn.net/feifanzhuli/article/details/78247388?locationNum=1&fps=1)
+  [fastclick参考](https://github.com/ftlabs/fastclick)
 
+#   实现m-header组件
+*  位置
+    *  ./components/m-header/
+
+
+variable 中定义了一些通用的规范 字体 颜色,导入之后就可以用了(例如:$color-background)
+
+mixin 中定义了一些方法 bg-img 将logo图片导入
+
+在APP.vue 引入组件m-header.vue
+
+```JavaScript
+<template>
+  <div id="app">
+      <m-header></m-header>
+    <!-- <router-view/> -->
+  </div>
+</template>
+
+<script type="text/ecmascript-6">
+import MHeader from 'compontents/m-header/m-header'
+export default{
+  components:{
+    MHeader
+  }
+}
+</script>
+
+```
+
+>NOTE: 命名: 将m-header的组件名在注册组件的时候换成了驼峰命名
+>
+>html中大小写不敏感m-header 在js当中m-header不支持只能用驼峰
+![image](./readme/images/error2.png)
+
+webpack.base.conf.js
+别名的配置
+```JavaScript
+  resolve: {
+    extensions: ['.js', '.vue', '.json'],
+    alias: {
+      '@': resolve('src'),
+      'common':resolve('src/common'),
+      'components':resolve('src/components'),
+    }
+  },
+```
+# 2.1

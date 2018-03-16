@@ -2,6 +2,8 @@
 ### vue init webpack vue-music
 >可以帮我们初始化 webpack的配置,
 
+###  由于众所周知的原因，可以考虑切换源为 taobao 源
+$ npm set registry https://registry.npm.taobao.org/
 
   * Runtime + Compiler: recommended for most users
   * Runtime-only: about 6KB lighter min+gzip, but templates (or any Vue-specific HTML)
