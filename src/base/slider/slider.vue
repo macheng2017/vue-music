@@ -5,6 +5,7 @@
       </slot>
     </div>
     <div class="dots">
+      <span class="dot" v-for="(item, index) in dots" :key="index" :class="{active:currentPageIndex === index}"></span>
     </div>
   </div>
 </template>
@@ -26,10 +27,20 @@ export default {
       default: 4000
     }
   },
+  data() {
+    return {
+      dots: [],
+      currentPageIndex: 0
+    }
+  },
   mounted() {
     setTimeout(() => {
       this._setSliderWidth()
+      this._initDots()
       this._initSlider()
+      if (this.autoPlay) {
+        this._play()
+      }
     }, 20)
   },
   methods: {
@@ -77,6 +88,42 @@ export default {
         snapSpeed: 400,
         click: true
       })
+      /**
+       * 滚动当前页圆点放大
+       * 维护currentPageIndex 将滚动到某一页与其关联
+       * better-scroll 在滚动的时候会派发一个事件的
+       * 可以在初始化initSlider定义一个事件
+       * 如果在loop模式下默认会在第一个和最后一个元素中添加2个元素
+       * 则pageIndex -=1
+       */
+      this.slider.on('scrollEnd', () => {
+        let pageIndex = this.slider.getCurrentPage().pageX
+        if (this.loop) {
+          pageIndex -= 1
+        }
+        this.currentPageIndex = pageIndex
+
+        if (this.autoPlay) {
+          clearTimeout(this.timer)
+          this._play()
+        }
+      })
+    },
+    _initDots() {
+      // dots 是图片上的小圆点,在下面顶一个长度为children.length的空数组
+      this.dots = new Array(this.children.length)
+    },
+    _play() {
+      let pageIndex = this.currentPageIndex + 1
+      if (this.loop) {
+        // 和上面的逻辑是一样的,因为有副本的缘故
+        pageIndex += 1
+      }
+      // 定义定时器
+      this.timer = setTimeout(() => {
+        // 切换时使用better-scroll goToPage()
+        this.slider.goToPage(pageIndex, 0, 400)
+      }, this.interval)
     }
   }
 }

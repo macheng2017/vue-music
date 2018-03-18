@@ -585,3 +585,92 @@ import { addClass } from 'common/js/dom';
 
 ##   初始化slider
 
+```JavaScript
+    _initSlider() {
+      this.slider = new BScroll(this.$refs.slider, {
+        scrollX: true,
+        scrollY: false,
+        momentum: false,
+        snap: true,
+        snapLoop: this.loop,
+        snapThreshold: 0.3,
+        snapSpeed: 400,
+        click: true
+      })
+    }
+```
+# part2.4完善slider组件
+
+添加dots自动轮播
+* 通过页面元素审查发现轮播图中有7个元素,但是我们获取的数据是5个图片
+  原因是初始化slider,为了实现无缝滑动会为子元素clone两张
+* dots也就是在图片上有几个点,必须在初始化slider之前初始化dos
+* 定义一个_initDots()的方法
+
+```javascript
+   _initDots() {
+      // dots 是图片上的小圆点,在下面顶一个长度为children.length的空数组
+      this.dots = new Array(this.children.length)
+    }
+```
+## 滚动当前页圆点放大
+
+```html
+  <span class="dot" v-for="(item, index) in dots" :key="index"
+
+   :class="{active:currentPageIndex==index}"
+```
+
+* :class="{active:currentPageIndex===index}"
+* 注意在html标签内写的是{{ }}
+* 这里用的是一个表达式,而且是用的是单大括号
+* 当表达式为true则active 标签被激活
+
+```css
+&.active {
+        width: 20px;
+        border-radius: 5px;
+        background: $color-text-ll;
+      }
+```
+定义变量
+currentPageIndex: 0
+
+维护currentPageIndex 将滚动到某一页与其关联
+* better-scroll 在滚动的时候会派发一个事件的
+* 可以在初始化initSlider定义一个事件
+
+```javascript
+       /**
+        * 维护currentPageIndex 将滚动到某一页与其关联
+        * better-scroll 在滚动的时候会派发一个事件的
+        * 可以在初始化initSlider定义一个事件
+        * 如果在loop模式下默认会在第一个和最后一个元素中添加2个元素
+        * 则pageIndex -=1
+        */
+      this.slider.on('scrollEnd', () => {
+        let pageIndex = this.slider.getCurrentPage().pageX
+        if (this.loog) {
+          pageIndex -=1
+        }
+        this.currentPageIndex = pageIndex
+       })
+```
+
+自动播放
+
+
+```javascript
+    _play() {
+      let pageIndex = this.currentPageIndex + 1
+      if (this.loop) {
+        // 和上面的逻辑是一样的,因为有副本的缘故
+        pageIndex += 1
+      }
+      // 定义定时器
+      this.timer = setTimeout(() => {
+        // 切换时使用better-scroll goToPage() 0 代表是y方向的 400毫秒时间间隔
+        this.slider.goToPage(pageIndex, 0, 400)
+      }, this.interval)
+    }
+```
