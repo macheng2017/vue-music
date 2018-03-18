@@ -364,7 +364,7 @@ export function getRecommend () {
 }
 ```
 
-# 再做一个轮子实现一个轮图组件
+# part2.3 再做一个轮子实现一个轮图组件
 
 新建一个基础组件文件夹 base目录 与components 组件同级
 /src/base/slider
@@ -377,4 +377,211 @@ export function getRecommend () {
 base文件夹中使用
 
 
+## 在recommend组件中引用 slider组件
+
+### 在Recommend组件中做一些修改
+
+* 将jsonp获取的数据存放到data当中
+* 在recommend组件中引用的slider中遍历数据
+
+```JavaScript
+ methods: {
+    _getRecommend() {
+      getRecommend().then(res => {
+        if (res.code === ERR_OK) {
+          console.log(res.data.slider)
+          this.recommends = res.data.slider
+        }
+      })
+    }
+  },
+
+```
+
+照着下面的参数将recommend组件中的slider组件完善
+![image](./images/recommend.png)
+
+```html
+ <div class="recommend">
+   <div class="recommend-content">
+     <div class="slider-wrapper">
+         <!-- 放到slider组件的插槽中 -->
+       <slider>
+          <div v-for="item in recommends" :key="item.id">
+            <!-- 从获取的数据可以得到linkUrl -->
+            <a :href="item.linkUrl">
+              <img :src="item.picUrl">
+            </a>
+
+          </div>
+       </slider>
+       <!-- ... -->
+```
+
+完成之后可以成功的看到图片但是样式不对
+
+
+使用 [better-scroll](https://github.com/ustbhuangyi/better-scroll)
+```javascript
+<script>
+export default {
+  props: {
+    loop:{
+      type: Boolean,
+      default: true
+    },
+    autoPlay: {
+      type: Boolean,
+      default: true
+    },
+    interval: {
+      type: Number,
+      default: 4000
+    }
+  }
+}
+</script>
+```
+限制传入的值以及设定默认值
+
+注意初始化的时机
+* 初始化不能滚动,初始化报错原因是初始化时机不对,组件没有在初始化时渲染,或者设置组件的宽度或者高度不对
+* 需要在我们slider dom-ready的时候初始化
+* 使用mounted这个钩子
+* 设置setTimeout 为20毫秒,浏览器一般是17毫秒刷新一次,设置时间太短了slider不会刷新,是一个经验值
+* 建议将大段的代码放到一个methods中,否则会难以维护
+
+ [设置ref是怎么回事?](https://cn.vuejs.org/v2/guide/components.html#子组件引用)
+```html
+  <div class="slider" ref="slider">
+  <div class="slider-group" ref="sliderGroup">
+```
+tip:
+
+import { Bscorll as B } from 'better-scroll' 还可以加别名
+
+```JavaScript
+<script type="text/ecmascript-6">
+import BScroll from 'better-scroll'
+import { addClass } from 'common/js/dom'
+export default {
+  props: {
+    loop: {
+      type: Boolean,
+      default: true
+    },
+    autoPlay: {
+      type: Boolean,
+      default: true
+    },
+    interval: {
+      type: Number,
+      default: 4000
+    }
+  },
+  mounted() {
+    setTimeout(() => {
+      this._setSliderWidth()
+      this._initSlider()
+    }, 20)
+  },
+  methods: {
+
+    /**
+     *     //需要计算slider的宽度,这里的slider是横向的
+     *1. 首先需要先获取slider下面的列表到底有多少个元素
+     *2. 然后初始化sliderGroup的宽度 width = 0 随后用计算结果赋值
+     *3. 获得slider的宽度这个是被里面图片撑开,即获取里面图片宽度即可
+     *4. 使用循环计算sliderGroup的宽度并赋值给width
+     *      1.现获取到每个子元素child
+     *      2.位每个子元素添加class属性,添加class的方法addClass已经抽离成公用方法了
+     *      3.每个child设置宽度
+     *5. 如果this.loop是true,接下来会初始化loop
+          1.实际上是clone两个dom,为了保证循环切换
+          2. 需要加两倍的sliderwith
+
+     *
+     *
+     */
+    _setSliderWidth() {
+      this.children = this.$refs.sliderGroup.children
+      let width = 0
+      let sliderWidth = this.$refs.slider.clientWidth
+      for (let i = 0; i < this.children.length; i++) {
+        let child = this.children[i]
+        addClass(child, 'slider-item')
+
+        child.style.width = sliderWidth + 'px'
+        width += sliderWidth
+      }
+      if (this.loop) {
+        width += 2 * sliderWidth
+      }
+      this.$refs.sliderGroup.style.width = width + 'px'
+    },
+    _initSlider() {
+      this.slider = new BScroll(this.$refs.slider, {
+        scrollX: true,
+        scrollY: false,
+        momentum: false,
+        snap: true,
+        snapLoop: this.loop,
+        snapThreshold: 0.3,
+        snapSpeed: 400,
+        click: true
+      })
+    }
+  }
+}
+</script>
+
+
+```
+
+为child 添加样式
+写一个dom操作的一些通用方法
+```javascript
+// 这里写一些dom操作的通用方法,将一些比较常用的方法抽象出来
+// el,dom对象
+/**
+ * @param {*} el dom 对象
+ * @param {*} className
+ */
+export function addClass(el, className) {
+  if (hasClass(el, className)) {
+    return
+  }
+  let newClass = el.className.split(' ')
+  newClass.push(className)
+  el.className = newClass.join(' ')
+}
+/**
+ * @export 如果已经有,className需要一个方法判断是否存在className
+ * @param {any} el
+ * @param {any} className
+ * 1. 使用正则判断
+ */
+export function hasClass (el, className) {
+  let reg = new RegExp('(^|\\s)' + className + '(\\s|$)')
+  return reg.test(el.className)
+}
+```
+
+import { addClass } from 'common/js/dom';
+
+
+问题:
+
+>当一切都完成刷新页面却没有正确显示尺寸?怎么去定位问题?
+
+1. slider组件的加载时机是mounted setSliderWidth
+2. 在recommend组件引用了slider
+3. recommend的引用时机是在created时候去getRecommend获取数据,
+4. 在getRecommend是一个异步过程会有几百毫秒到几秒的延迟,在其还没有获取到数据的时候
+5. 这个时候slider中的mounted已经执行了,这个时机不对了
+6. 我们为了确保slider插件中的slot有数据,才能正确的计算里面的尺寸
+7. 我们需要在Recommend组件加一个判断等待,v-if=recommend.length有数据的时候再去渲染下面的dom
+
+
+##   初始化slider
 
