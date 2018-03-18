@@ -162,23 +162,27 @@ export default{
     },
 ```
 
-### 从[qq音乐](https://m.y.qq.com/)获取数据
+## 从[qq音乐](https://m.y.qq.com/)获取数据
 
-F12打开浏览器的 console
 
-切换到Network分栏,下面有一些数据的分类
+#### 我们接下来想做的事情就是,从QQmusic官网上获取到我们的轮播图的数据
 
-XHR 也就是ajax请求
-JS  fcg开头的js 不是通常js脚本,它其实是一些数据,实际上返回的是一些jsonp
 
-jsonp解决跨域问题
+1. 登录QQmusic官网,F12打开浏览器的 console
+
+2. 切换到Network分栏,下面有一些数据的分类
+    * XHR  也就是ajax请求
+    * **JS** 选项卡下找到fcg开头的js 不是通常js脚本,它其实是一些数据,实际上返回的是一些jsonp
+
+## jsonp解决跨域问题
 
 ## jsonp的原理
 1. jsonp之所以能够解决跨域问题是因为,它不是一个ajax请求,是利用动态创建的是script标签script标签没有同源策略限制的,是可以跨域的
 2. 通过创建script标签,将其指向请求服务端地址
-这个地址和普通ajax地址有什么不一样的地方?
 
-这个地址后面通常有个参数叫做callback=a,这样服务端就可以解析到,这样服务端就可以在a中包裹一段数据,然后在前端执行a这个方法,那么在此之前前端是没有a这个方法的,所以我们需要在发送请求之前,在前端定义这个方法,这样在服务端返回的执行这个a方法我们就可以获取a方法中的数据
+>这个地址和普通ajax地址有什么不一样的地方?
+
+    这个地址后面通常有个参数叫做callback=a,这样服务端就可以解析到,这样服务端就可以在a中包裹一段数据,然后在前端执行a这个方法,那么在此之前前端是没有a这个方法的,所以我们需要在发送请求之前,在前端定义这个方法,这样在服务端返回的执行这个a方法我们就可以获取a方法中的数据
 
     jsonp 有空看下源码 https://github.com/webmodules/jsonp
 ***
@@ -213,11 +217,26 @@ Returns a function that, when called, will cancel the in-progress jsonp request 
 ![image](./images/jsonp-callback.png)
 ![image](./images/res-callback.png)
 
+>1. 那么问题就是.fcg是什么文件?为什么通过其可以找到jsonp的请求?
+>2. jsonp的原理是什么?
+>3. 为什么jsonp可以解决跨域问题?
+>4. 解决跨域问题只有这一条路吗?
+***
+我希望通过这种自问自答的形式提醒自己 :
+* 只有发现有价值的问题才能开始思考
+* 也只有通过连续发现有价值的问题才能深入思考
+***
 callback 以后会改成promise实现
 
 引用 jsonp
 
-对jsonp做一个封装
+## 对jsonp做一个封装
+
+* 为什么要对jsonp做封装?
+1. jsonp插件参数不符合常见的调用习惯(一个干净的url + data(object 参数对象))
+2. jsonp没有实现promise调用
+3. 没有做参数校验,错误处理
+
 ```JavaScript
 import originJSONP from 'jsonp'
 /**
@@ -280,7 +299,14 @@ tip：
   return url ? url.substring(1) : ''
 }
 ```
+* promise的使用,将一个普通函数封装成promise函数
 
+TODO: 这里需要补一个链接,详细介绍下promise
+```JavaScript
+new promise((resolve,reject) => {
+
+})
+```
 
 # part 2.2 使用jsonp抓取数据
 
@@ -337,6 +363,18 @@ export function getRecommend () {
   return jsonp(url, data, options)
 }
 ```
+
+# 再做一个轮子实现一个轮图组件
+
+新建一个基础组件文件夹 base目录 与components 组件同级
+/src/base/slider
+轮播图是一个相对比较基础的组件,可以将其放入base文件夹中,这样项目中就有了两个组件库
+* 基础组件库base
+* 业务组件库components
+
+一个项目中允许有多个package.js 吗?
+可以将组件中单独安装依赖吗?
+base文件夹中使用
 
 
 
