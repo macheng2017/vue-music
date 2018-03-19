@@ -580,9 +580,10 @@ import { addClass } from 'common/js/dom';
 4. 在getRecommend是一个异步过程会有几百毫秒到几秒的延迟,在其还没有获取到数据的时候
 5. 这个时候slider中的mounted已经执行了,这个时机不对了
 6. 我们为了确保slider插件中的slot有数据,才能正确的计算里面的尺寸
-7. 我们需要在Recommend组件加一个判断等待,v-if=recommend.length有数据的时候再去渲染下面的dom
+7. 我们需要在Recommend组件加一个判断等待,v-if="recommend.length"有数据的时候再去渲染下面的dom
 
 
+[生命周期图示](https://cn.vuejs.org/v2/guide/instance.html#生命周期图示)
 ##   初始化slider
 
 ```JavaScript
@@ -638,6 +639,7 @@ currentPageIndex: 0
 
 维护currentPageIndex 将滚动到某一页与其关联
 * better-scroll 在滚动的时候会派发一个事件的
+* this.slider.on是插件内部定义的事件
 * 可以在初始化initSlider定义一个事件
 
 ```javascript
@@ -650,7 +652,7 @@ currentPageIndex: 0
         */
       this.slider.on('scrollEnd', () => {
         let pageIndex = this.slider.getCurrentPage().pageX
-        if (this.loog) {
+        if (this.loop) {
           pageIndex -=1
         }
         this.currentPageIndex = pageIndex
@@ -674,3 +676,9 @@ currentPageIndex: 0
       }, this.interval)
     }
 ```
+问题:
+1. 轮播图完成之后发现显示效果最后会多出2张黑色的图片占位?
+2. 轮播图上的dots与第一张图片错位
+
+
+细读[better-scroll 遇见 Vue](https://zhuanlan.zhihu.com/p/27407024)也许能找到答案
