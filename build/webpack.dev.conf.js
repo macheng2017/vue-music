@@ -9,6 +9,12 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const portfinder = require('portfinder')
+//通过代理来请求qqmusic 歌单页面
+const axios = require('axios')
+const express = require('express')
+const app = express()
+const apiRoutes = express.Router()
+
 
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
@@ -42,7 +48,27 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     quiet: true, // necessary for FriendlyErrorsPlugin
     watchOptions: {
       poll: config.dev.poll,
+    },
+    // 添加before
+    before(app){
+      apiRoutes.get('/getDiscList', function(req, res) {
+        let url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
+        axios.get(url, {
+          headers:{
+            referer:'https://c.y.qq.com/',
+            host: 'c.y.qq.com'
+          },
+          // 透传 将 /getDiscList 透传给qqmusic
+          params: req.query
+        }).then(response => {
+          // 透传个我们上一个请求 /getDiscList
+          res.json(response.data)
+        }).catch(e => console.log(e))
+      })
+      app.use('/api', apiRoutes)
     }
+
+
   },
   plugins: [
     new webpack.DefinePlugin({
