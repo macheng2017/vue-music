@@ -96,7 +96,6 @@ color: $color-text
      'eol-last':0,
      'space-before-function-paren':0
 
-![image](./images/)
 
 ![image](./images/eslink-add.png)
 
