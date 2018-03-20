@@ -794,6 +794,8 @@ http://blog.csdn.net/github_37533433/article/details/78936133
 
 http://blog.csdn.net/qq_34645412/article/details/78833860
 
+[使用before参考webpack文档](https://webpack.js.org/configuration/dev-server/#devserver-before)
+
 ## 在webpack.dev.conf.js 配置路由 代理转发获取数据
 
 ```js
