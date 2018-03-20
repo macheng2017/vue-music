@@ -364,7 +364,7 @@ export function getRecommend () {
 }
 ```
 
-# part2.3 再做一个轮子实现一个轮图组件
+# part2.3 使用better-scroll插件实现一个轮图组件
 
 新建一个基础组件文件夹 base目录 与components 组件同级
 /src/base/slider
