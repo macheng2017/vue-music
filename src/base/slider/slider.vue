@@ -12,7 +12,10 @@
 <script type="text/ecmascript-6">
 import BScroll from 'better-scroll'
 import { addClass } from 'common/js/dom'
+const COMPONENT_NAME = 'slider'
+
 export default {
+  name: COMPONENT_NAME,
   props: {
     loop: {
       type: Boolean,
@@ -25,6 +28,22 @@ export default {
     interval: {
       type: Number,
       default: 4000
+    },
+    showDot: {
+      type: Boolean,
+      default: true
+    },
+    click: {
+      type: Boolean,
+      default: true
+    },
+    threshold: {
+      type: Number,
+      default: 0.3
+    },
+    speed: {
+      type: Number,
+      default: 400
     }
   },
   data() {
@@ -34,35 +53,80 @@ export default {
     }
   },
   mounted() {
-    setTimeout(() => {
+    this.update()
+
+    window.addEventListener('resize', () => {
+      if (!this.slider || !this.slider.enabled) {
+        return
+      }
+      clearTimeout(this.resizeTimer)
+      this.resizeTimer = setTimeout(() => {
+        if (this.slider.isInTransition) {
+          this._onScrollEnd()
+        } else {
+          if (this.autoPlay) {
+            this._play()
+          }
+        }
+        this.refresh()
+      }, 60)
+    })
+  },
+  activated() {
+    if (!this.slider) {
+      return
+    }
+    this.slider.enable()
+    let pageIndex = this.slider.getCurrentPage().pageX
+    this.slider.goToPage(pageIndex, 0, 0)
+    this.currentPageIndex = pageIndex
+    if (this.autoPlay) {
+      this._play()
+    }
+  },
+  deactivated() {
+    this.slider.disable()
+    clearTimeout(this.timer)
+  },
+  beforeDestroy() {
+    this.sliderr.disable()
+    clearTimeout(this.timer)
+  },
+  methods: {
+    update() {
+      if (this.slider) {
+        this.slider.destroy()
+      }
+      this.$nextTick(() => {
+        this.init()
+      })
+    },
+    refresh() {
+      this._setSliderWidth(true)
+      this.slider.refresh()
+    },
+    prev() {
+      this.slider.prev()
+    },
+    next() {
+      this.slider.next()
+    },
+    init() {
+      clearTimeout(this.timer)
+      this.currentPageIndex = 0
       this._setSliderWidth()
-      this._initDots()
+      if (this.showDot) {
+        this._initDots()
+      }
       this._initSlider()
+
       if (this.autoPlay) {
         this._play()
       }
-    }, 20)
-  },
-  methods: {
-
-    /**
-     *     //需要计算slider的宽度,这里的slider是横向的
-     *1. 首先需要先获取slider下面的列表到底有多少个元素
-     *2. 然后初始化sliderGroup的宽度 width = 0 随后用计算结果赋值
-     *3. 获得slider的宽度这个是被里面图片撑开,即获取里面图片宽度即可
-     *4. 使用循环计算sliderGroup的宽度并赋值给width
-     *      1.现获取到每个子元素child
-     *      2.位每个子元素添加class属性,添加class的方法addClass已经抽离成公用方法了
-     *      3.每个child设置宽度
-     *5. 如果this.loop是true,接下来会初始化loop
-          1.实际上是clone两个dom,为了保证循环切换
-          2. 需要加两倍的sliderwith
-
-     *
-     *
-     */
-    _setSliderWidth() {
+    },
+    _setSliderWidth(isResize) {
       this.children = this.$refs.sliderGroup.children
+
       let width = 0
       let sliderWidth = this.$refs.slider.clientWidth
       for (let i = 0; i < this.children.length; i++) {
@@ -72,58 +136,69 @@ export default {
         child.style.width = sliderWidth + 'px'
         width += sliderWidth
       }
-      if (this.loop) {
+      if (this.loop && !isResize) {
         width += 2 * sliderWidth
       }
       this.$refs.sliderGroup.style.width = width + 'px'
     },
     _initSlider() {
+      console.log(this.threshold)
       this.slider = new BScroll(this.$refs.slider, {
         scrollX: true,
         scrollY: false,
         momentum: false,
-        snap: true,
-        snapLoop: this.loop,
-        snapThreshold: 0.3,
-        snapSpeed: 400,
-        click: true
+        snap: {
+          loop: this.loop,
+          threshold: this.threshold,
+          speed: this.speed
+        },
+        bounce: false,
+        click: this.click
       })
-      /**
-       * 滚动当前页圆点放大
-       * 维护currentPageIndex 将滚动到某一页与其关联
-       * better-scroll 在滚动的时候会派发一个事件的
-       * 可以在初始化initSlider定义一个事件
-       * 如果在loop模式下默认会在第一个和最后一个元素中添加2个元素
-       * 则pageIndex -=1
-       */
-      this.slider.on('scrollEnd', () => {
-        let pageIndex = this.slider.getCurrentPage().pageX
-        if (this.loop) {
-          pageIndex -= 1
-        }
-        this.currentPageIndex = pageIndex
 
+      this.slider.on('scrollEnd', this._onScrollEnd)
+
+      this.slider.on('touchEnd', () => {
         if (this.autoPlay) {
-          clearTimeout(this.timer)
           this._play()
         }
       })
+
+      this.slider.on('beforeScrollStart', () => {
+        if (this.autoPlay) {
+          clearTimeout(this.timer)
+        }
+      })
+    },
+    _onScrollEnd() {
+      let pageIndex = this.slider.getCurrentPage().pageX
+      this.currentPageIndex = pageIndex
+      if (this.autoPlay) {
+        this._play()
+      }
     },
     _initDots() {
-      // dots 是图片上的小圆点,在下面顶一个长度为children.length的空数组
       this.dots = new Array(this.children.length)
     },
     _play() {
-      let pageIndex = this.currentPageIndex + 1
-      if (this.loop) {
-        // 和上面的逻辑是一样的,因为有副本的缘故
-        pageIndex += 1
-      }
-      // 定义定时器
+      clearTimeout(this.timer)
       this.timer = setTimeout(() => {
-        // 切换时使用better-scroll goToPage()
-        this.slider.goToPage(pageIndex, 0, 400)
+        this.slider.next()
       }, this.interval)
+    }
+  },
+  watch: {
+    loop() {
+      this.update()
+    },
+    autoPlay() {
+      this.update()
+    },
+    speed() {
+      this.update()
+    },
+    threshold() {
+      this.update()
     }
   }
 }
