@@ -9,7 +9,33 @@
 </template>
 
 <script>
-export default {}
+export default {
+  beforeCreate() {
+    console.log('Tab beforeCreate')
+  },
+  created() {
+    console.log('Tab created')
+  },
+  beforeMountet() {
+    console.log('Tab beforeMountet')
+  },
+  beforeUpdate() {
+    console.log('Tab beforeUpdate')
+  },
+  updated() {
+    console.log('Tab updated')
+  },
+  mounted() {
+    console.log('Tab Mountetd')
+  },
+  beforeDestroy() {
+    console.log('Tab beforeDestory')
+  },
+  destroyed() {
+    console.log('Tab destory')
+  }
+
+}
 </script>
 
 <style lang="stylus" scoped>

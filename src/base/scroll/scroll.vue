@@ -22,7 +22,29 @@ export default {
       default: null
     }
   },
-  mounted () {
+  beforeCreate() {
+    console.log('Scroll beforeCreate')
+  },
+  beforeMountet() {
+    console.log('Scroll beforeMountet')
+  },
+  beforeUpdate() {
+    console.log('Scroll beforeUpdate')
+  },
+  updated() {
+    console.log('Scroll updated')
+  },
+  beforeDestroy() {
+    console.log('Scroll beforeDestory')
+  },
+  destroyed() {
+    console.log('Scroll destory')
+  },
+  created() {
+    console.log('scroll created')
+  },
+  mounted() {
+    console.log('scroll mounted')
     setTimeout(() => {
       this._initScroll()
     }, 20)

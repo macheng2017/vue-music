@@ -42,7 +42,30 @@ import { getRecommend, getDiscList } from 'api/recommend'
 import Scroll from 'base/scroll/scroll'
 
 export default {
+  beforeCreate() {
+    console.log('Recommend beforeCreate')
+  },
+
+  beforeMountet() {
+    console.log('Recommend beforeMountet')
+  },
+  beforeUpdate() {
+    console.log('Recommend beforeUpdate')
+  },
+  updated() {
+    console.log('Recommend updated')
+  },
+  mounted() {
+    console.log('Recommend Mountetd')
+  },
+  beforeDestroy() {
+    console.log('Recommend beforeDestory')
+  },
+  destroyed() {
+    console.log('Recommend destory')
+  },
   created() {
+    console.log('recommend created')
     this._getRecommend()
     this._getDiscList()
   },
