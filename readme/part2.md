@@ -715,3 +715,129 @@ currentPageIndex: 0
     clearTimeout(this.timer)
   },
 ```
+```html
+<div class="recommend-list">
+       <h1 class="list-title">热门歌单</h1>
+
+        <ul>
+          <li class="item" v-for="(item, index) in discList" :key="index">
+            <div class="icon">
+              <img width="60" height="60" :src="item.imgurl" alt="">
+            </div>
+            <div class="text">
+              <h2 class="name" v-html="item.creator.name"></h2>
+              <p class="desc" v-html="item.dissname"></p>
+            </div>
+          </li>
+        </ul>
+
+     </div>
+   </div>
+```
+* v-html
+
+flex 布局
+垂直方向上居中
+align-items: center;
+
+参考:
+[flex 布局](http://www.ruanyifeng.com/blog/2015/07/flex-grammar.html)
+
+
+# 局部滚动
+## 使用 better-scroll
+
+* better-scroll层级是父子级,只有第一个元素才能滚动
+
+* 直接使用 better-scroll组件太繁琐了,像小程序view-scroll组件一样抽象出一个scroll组件
+
+* base/scroll/scroll.vue
+
+* 体现了函数式编程思想与命令式编程
+
+```js
+<template>
+  <div ref="wrapper">
+    <slot></slot>
+  </div>
+</template>
+
+<script>
+  import BScroll from 'better-scroll'
+  export default {
+
+    props: {
+      probeType: {
+        type: Number,
+        default: 1
+      },
+      click: {
+        type: Boolean,
+        default: true
+      },
+      data: {
+        type: Array,
+        default: null
+      }
+    },
+    mounted () {
+      setTimeout(() => {
+        this._initScroll()
+      }, 20);
+    },
+    methods: {
+      _initScroll() {
+        if(!this.$refs.wrapper) {
+          return
+        }
+        this.scroll = new BScroll(this.$refs.wrapper, {
+          probeType: this.probeType,
+          click: this.click
+        })
+      },
+      // 代理方法
+      enable() {
+        this.scroll && this.scroll.enable()
+      },
+      disable() {
+        this.scroll && this.scroll.disable()
+      },
+      refresh() {
+        this.scroll && this.scroll.refresh()
+      }
+    },
+
+    // 保证组件内部自动刷新 函数式 命令式
+    watch() {
+      data() {
+        setTimeout(() => {
+          this.refresh()
+        }, 20);
+      }
+    }
+  }
+</script>
+```
+
+```html
+<template>
+ <div class="recommend">
+   <scroll class="recommend-content" :data="discList">
+     <div>
+     <div v-if="this.recommends.length" class="slider-wrapper">
+         <!-- 放到slider组件的插槽中 -->
+       <slider>
+          <div  v-for="item in recommends" :key="item.id">
+            <!-- 从获取的数据可以得到linkUrl -->
+            <a :href="item.linkUrl">
+              <img :src="item.picUrl">
+            </a>
+
+          </div>
+       </slider>
+
+     </div>
+     <!--...-->
+ ```
+ * :data="discList" 在scroll 中绑定歌单数据 是为了在变化的时候重新刷新滚动组件
+ * 想想数据加载的时机

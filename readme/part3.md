@@ -146,7 +146,16 @@ export function getDiscList() {
 ```
 我们需要的是一个json
 
-* 通过设置host rece
+保护接口的策略
+
+* 通过设置host refer 设置过滤
+* 接口验证签名
+* 封锁出口ip
+
+
+# 歌单组件
+
+
 
 
 

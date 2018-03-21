@@ -1,6 +1,7 @@
 <template>
  <div class="recommend">
-   <div class="recommend-content">
+   <scroll class="recommend-content" :data="discList">
+     <div>
      <div v-if="this.recommends.length" class="slider-wrapper">
          <!-- 放到slider组件的插槽中 -->
        <slider>
@@ -16,8 +17,21 @@
      </div>
      <div class="recommend-list">
        <h1 class="list-title">热门歌单</h1>
-     </div>
-   </div>
+
+        <ul>
+          <li class="item" v-for="(item, index) in discList" :key="index">
+            <div class="icon">
+              <img width="60" height="60" :src="item.imgurl" alt="">
+            </div>
+            <div class="text">
+              <h2 class="name" v-html="item.creator.name"></h2>
+              <p class="desc" v-html="item.dissname"></p>
+            </div>
+          </li>
+        </ul>
+      </div>
+      </div>
+    </scroll>
  </div>
 </template>
 
@@ -25,6 +39,8 @@
 import Slider from 'base/slider/slider'
 import { ERR_OK } from 'api/config'
 import { getRecommend, getDiscList } from 'api/recommend'
+import Scroll from 'base/scroll/scroll'
+
 export default {
   created() {
     this._getRecommend()
@@ -32,7 +48,8 @@ export default {
   },
   data() {
     return {
-      recommends: []
+      recommends: [],
+      discList: []
     }
   },
   methods: {
@@ -48,19 +65,20 @@ export default {
     _getDiscList() {
       getDiscList().then(res => {
         if (res.code === ERR_OK) {
-          console.log(res.data.list)
+          this.discList = res.data.list
         }
       })
     }
   },
   components: {
-    Slider
+    Slider,
+    Scroll
   }
 }
 </script>
 
 <style lang="stylus" scoped>
-@import '~common/stylus/variable';
+@import '~common/stylus/variable'
 
 .recommend {
   position: fixed;
