@@ -284,6 +284,7 @@ align-items: center;
      <!--...-->
  ```
  * :data="discList" 在scroll 中绑定歌单数据 是为了在变化的时候重新刷新滚动组件
+ * 将数据传递给组件是为了让组件内部watch到数据的变化然后自己刷新
  * 想想数据加载的时机
  * 让组件内部自己去处理刷新,外部数据更新后组件自己刷新自己,纯组件
 
@@ -313,6 +314,120 @@ align-items: center;
 
 5. 什么是时候一个组件仅是一个组件显示,什么时候一个组件却可以作为一个页面显示?
 
+- page 是我们人为抽象出来的概念。单个组件也可以是 page，组合组件也可以是 page。page 是对应你业务上的页面。
 
 ![image](./images/嵌套组件的声明周期.png)
 
+
+
+防止scroll组件在slider组件中的图片未完全加载完毕前渲染导致,列表长度少了滚动图的高度
+在slider组件图片标签上加上 @load="loadImage",等其图片完成加载之后scroll再重新计算一次.
+
+可以监听图片onload事件
+
+
+当图片加载完成之后就可以
+```html
+   <!-- 从获取的数据可以得到linkUrl -->
+            <a :href="item.linkUrl">
+              <img @load="loadImage" :src="item.picUrl">
+            </a>
+```
+```js
+    loadImage() {
+      // 高频小套路 设置一个标志位,确保逻辑只执行一次
+      if (!this.checkLoaded) {
+        console.log('图片加载重新计算...')
+        this.$refs.scroll.refresh()
+        this.checkLoaded = true
+      }
+    }
+```
+
+总结:
+
+1. 理解better-scroll什么时候需要重新refresh重新计算的
+2. 通常遇到better-scroll不能滚动的根源是什么
+
+better-scroll的渲染原理
+
+* 根据初始化时机,根据父元素高度和子元素高度之差做一个计算,计算可以滚动的位置,所有实例化在调用
+必须保证dom是渲染好的,能正确计算高度
+* 有数据变化场景的时候必须重新计算
+
+
+##懒加载插件
+
+
+[vue-lazyload](https://github.com/hilongjw/vue-lazyload)
+当我们滚动到的时候再去加载图片
+
+在main.js中
+
+注册插件
+
+
+require('common/image/default.png'),require语法是weppack支持的会解析为base64地址
+
+```js
+import VueLazyload from 'vue-lazyload'
+
+Vue.config.productionTip = false
+
+/* 去掉300毫秒的延时 */
+fastclick.attach(document.body)
+// or with options
+Vue.use(VueLazyload, {
+  loading: require('common/image/default.png')
+})
+```
+思考:
+
+在使用vue-lazyload 原理实现,如果自己去写怎么去思考
+
+和fastclick 冲突 页面不能点击可以使用fastclick的 class="needsclick"
+
+#加载图标
+
+
+添加
+
+src/base/loading/loading.vue
+```js
+<template>
+<div class="loading">
+  <img src="./loading.gif" alt="" width="24" height="24">
+  <p class="desc">{{title}}</p>
+</div>
+</template>
+<script>
+export default {
+  props: {
+    title: {
+      type: String,
+      default: '玩命加载中...'
+    }
+  }
+}
+</script>
+<style lang="stylus" scoped>
+@import "~common/stylus/variable"
+
+.loading
+  width 100%
+  text-align center
+  .desc
+    line-height 20px
+    font-size $font-size-small
+    color $color-text-l
+
+</style>
+```
+添加
+```html
+  <div class="loading-container" v-show="!discList.length">
+        <loading></loading>
+ </div>
+```
+
+#歌手详情页面

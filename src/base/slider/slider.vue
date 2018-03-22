@@ -33,6 +33,24 @@ export default {
       currentPageIndex: 0
     }
   },
+  beforeCreate() {
+    console.log('Slider beforeCreate')
+  },
+  created() {
+    console.log('Slider created')
+  },
+  beforeMountet() {
+    console.log('Slider beforeMountet')
+  },
+  beforeUpdate() {
+    console.log('Slider beforeUpdate')
+  },
+  updated() {
+    console.log('Slider updated')
+  },
+  beforeDestroy() {
+    console.log('Slider beforeDestory')
+  },
   mounted() {
     setTimeout(() => {
       this._setSliderWidth()

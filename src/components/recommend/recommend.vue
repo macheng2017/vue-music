@@ -1,14 +1,14 @@
 <template>
  <div class="recommend">
-   <scroll class="recommend-content" :data="discList">
-     <div>
+   <scroll class="recommend-content" :data="discList" ref="scroll">
+    <div>
      <div v-if="this.recommends.length" class="slider-wrapper">
          <!-- 放到slider组件的插槽中 -->
        <slider>
           <div  v-for="item in recommends" :key="item.id">
             <!-- 从获取的数据可以得到linkUrl -->
             <a :href="item.linkUrl">
-              <img :src="item.picUrl">
+              <img @load="loadImage" :src="item.picUrl">
             </a>
 
           </div>
@@ -21,7 +21,7 @@
         <ul>
           <li class="item" v-for="(item, index) in discList" :key="index">
             <div class="icon">
-              <img width="60" height="60" :src="item.imgurl" alt="">
+              <img width="60" height="60" v-lazy="item.imgurl" alt="">
             </div>
             <div class="text">
               <h2 class="name" v-html="item.creator.name"></h2>
@@ -31,11 +31,17 @@
         </ul>
       </div>
       </div>
+
+      <div class="loading-container" v-show="!discList.length">
+        <loading></loading>
+      </div>
+
     </scroll>
  </div>
 </template>
 
 <script>
+import Loading from 'base/loading/loading'
 import Slider from 'base/slider/slider'
 import { ERR_OK } from 'api/config'
 import { getRecommend, getDiscList } from 'api/recommend'
@@ -67,7 +73,9 @@ export default {
   created() {
     console.log('recommend created')
     this._getRecommend()
-    this._getDiscList()
+    setTimeout(() => {
+      this._getDiscList()
+    }, 2000)
   },
   data() {
     return {
@@ -91,11 +99,20 @@ export default {
           this.discList = res.data.list
         }
       })
+    },
+    loadImage() {
+      // 高频小套路 设置一个标志位,确保逻辑只执行一次
+      if (!this.checkLoaded) {
+        console.log('图片加载重新计算...')
+        this.$refs.scroll.refresh()
+        this.checkLoaded = true
+      }
     }
   },
   components: {
     Slider,
-    Scroll
+    Scroll,
+    Loading
   }
 }
 </script>
