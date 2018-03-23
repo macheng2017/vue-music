@@ -5,6 +5,7 @@
 <script>
 import { getSingerList } from 'api/singer'
 import { ERR_OK } from 'api/config'
+import Singer from 'common/js/singer'
 const HOT_NAME = '热门'
 const HOT_SINGER_LEN = 10
 export default {
@@ -22,6 +23,7 @@ export default {
         if (res.code === ERR_OK) {
           console.log(res.data.list)
           this.singers = res.data.list
+          console.log(this._normalizeSinger(res.data.list))
         }
       })
     },
@@ -35,12 +37,12 @@ export default {
       }
       list.forEach((item, index) => {
         if (index < HOT_SINGER_LEN) {
-          map.hot.items.push({
-            id: item.Fsinger_mid,
-            name: item.Fsinger_name,
-            avatar: 'https://y.gtimg.cn/music/photo_new/T001R300x300M000${item.Fsinger_mid}.jpg?max_age=2592000'
-          })
-
+          map.hot.items.push(
+            new Singer({
+              id: item.Fsinger_mid,
+              name: item.Fsinger_name
+            })
+          )
         }
         // 生成字母列表
         const key = item.Findex
@@ -50,12 +52,26 @@ export default {
             items: []
           }
         }
-      map[key].items.push({
-        id: item.Fsinger_mid,
-        name: item.Fsinger_name,
-        avatar: 'https://y.gtimg.cn/music/photo_new/T001R300x300M000${item.Fsinger_mid}.jpg?max_age=2592000'
+        // 或者这种方式 new Singer (item.Fsinger_mid, item.Fsinger_name) 想一下两种写法那种更好
+        map[key].items.push(new Singer({
+          id: item.Fsinger_mid,
+          name: item.Fsinger_name
+        }))
       })
-    });
+      // 为了得到有序列表,需要处理map
+      /**
+       * 1. 将map,根据title的值分成两份
+       * 2. 字母列表放到ret数组中,title值为 HOT_NAME
+       * 3.
+      */
+      let hot = []
+      let ret = []
+      for (let key in map) {
+        let val = map[key]
+        if (val.title.match('[a-z]|[A-Z]{1}')) {
+
+        }
+      }
 
     }
   }
