@@ -227,11 +227,11 @@ export default class Singer {
 ```html
 <template>
   <scroll class="listview" :data="data">
-    <ul>
-      <li v-for="(group, index) in data" :key="index">
+    <ul >
+      <li class="list-group" v-for="(group, index) in data" :key="index" >
         <h2 class="list-group-title">{{group.title}}</h2>
         <ul>
-          <li v-for="(item, index) in group.items" :key="index">
+          <li class="list-group-item" v-for="(item, index) in group.items" :key="index">
             <img class="avatar" :src="item.avatar">
             <span class="name">{{item.name}}</span>
           </li>
@@ -241,12 +241,12 @@ export default class Singer {
   </scroll>
 </template>
 <script>
-import  Scroll from 'basse/scroll/scroll'
+import Scroll from 'base/scroll/scroll'
 export default {
-  props:{
-    data:{
+  props: {
+    data: {
       type: Array,
-      default: []
+      default: null
     }
   },
   components: {
@@ -258,4 +258,22 @@ export default {
 
 
 ## 在singer.vue中引入刚刚定义的组件
+
+
+
+```html
+import Listview from 'base/listview/listview'
+
+<template>
+ <div class="singer">
+   <listview :data="singers"/>
+</div>
+</template>
+```
+
+## 使用懒加载
+
+```js
+ v-lazy="item.avatar"
+```
 
