@@ -68,6 +68,15 @@ export default {
     },
     refresh() {
       this.scroll && this.scroll.refresh()
+    },
+    // 滚动到某个位置
+    scrollTo() {
+      // 这里为什么要用apply 因为scrollTo需要接受一些参数,需要应用到下面的语句
+      // 第一参数是this.scroll是当前上下文 arguments 是传传入的参数
+      this.scroll && this.scroll.scrollTo.apply(this.scroll, arguments)
+    },
+    scrollToElement() {
+      this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
     }
   },
 

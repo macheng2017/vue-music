@@ -1,7 +1,7 @@
 <template>
-  <scroll class="listview" :data="data">
+  <scroll class="listview" :data="data" ref="listview">
     <ul >
-      <li class="list-group" v-for="(group, index) in data" :key="index" >
+      <li class="list-group" v-for="(group, index) in data" :key="index" ref="listGroup" >
         <h2 class="list-group-title">{{group.title}}</h2>
         <ul>
           <li class="list-group-item" v-for="(item, index) in group.items" :key="index">
@@ -11,15 +11,63 @@
         </ul>
       </li>
     </ul>
+    <div class="list-shortcut"  @touchstart="onShortcutTouchStart" @touchmove.stop.prevent="onShortcutTouchMove">
+      <ul>
+        <li v-for="(item, index) in shortcutList" class="item" :key="index" :data-index="index">
+          {{item}}
+        </li>
+      </ul>
+    </div>
   </scroll>
 </template>
 <script>
 import Scroll from 'base/scroll/scroll'
+import { getData } from 'common/js/dom'
+
+// 18 实在css定义每个元素的高度
+const ANCHOR_HEIGHT = 18
 export default {
   props: {
     data: {
       type: Array,
       default: null
+    }
+  },
+
+  computed: {
+    shortcutList() {
+      return this.data.map((group) => {
+        return group.title.substr(0, 1)
+      })
+    }
+  },
+  created() {
+    this.touch = {}
+  },
+  methods: {
+    onShortcutTouchStart(e) {
+      // 获取子元素上的:data-index = "index" 属性值
+      let anchorIndex = getData(e.target, 'index')
+      // 在开始的时候获取一个touch
+      // 第一次触碰到手指文touchs[0]
+      let firstTouch = e.touches[0]
+      this.touch.y1 = firstTouch.pageY
+      // 先记录下当前的锚点
+      this.touch.anchorIndex = anchorIndex
+      this._scrollTo(anchorIndex)
+    },
+    onShortcutTouchMove(e) {
+      let firstTouch = e.touches[0]
+      this.touch.y2 = firstTouch.pageY
+      // | 0 向下取整
+      let delta = (this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT | 0
+      // 先定义好锚点的高度
+      let anchorIndex = parseInt(this.touch.anchorIndex) + delta
+      this._scrollTo(anchorIndex)
+    },
+    _scrollTo(index) {
+      // 第二个参数  滚动动画时间为0
+      this.$refs.listview.scrollToElement(this.$refs.listGroup[index], 0)
     }
   },
   components: {
