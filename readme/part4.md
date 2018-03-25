@@ -135,3 +135,127 @@ export default class Singer {
 
 
 ## 将map排序
+
+```js
+ // 为了得到有序列表,需要处理map
+      /**
+       * 1. 将map,根据title的值分成两份
+       * 2. 字母列表放到ret数组中,title值为 HOT_NAME
+       * 3.
+      */
+      let hot = []
+      let ret = []
+      for (let key in map) {
+        let val = map[key]
+        if (val.title.match('[a-zA-Z]{1}')) {
+          ret.push(val)
+        } else if (val.title === HOT_NAME) {
+          hot.push(val)
+        }
+      }
+      ret.sort((a, b) => {
+        // a.title.charCodeAt(0) - b.title.charCodeAt(0) 如果大于零则返回 true
+        return a.title.charCodeAt(0) - b.title.charCodeAt(0)
+      })
+      // 将数组排序后链接到一起
+      return hot.concat(ret)
+```
+
+```js
+    // 构建符合我们列表的数据
+    _normalizeSinger(list) {
+      let map = {
+        hot: {
+          title: HOT_NAME,
+          items: []
+        }
+      }
+      list.forEach((item, index) => {
+        if (index < HOT_SINGER_LEN) {
+          map.hot.items.push(
+            new Singer({
+              id: item.Fsinger_mid,
+              name: item.Fsinger_name
+            })
+          )
+        }
+        // 生成字母列表
+        const key = item.Findex
+        if (!map[key]) {
+          map[key] = {
+            title: key,
+            items: []
+          }
+        }
+        // 或者这种方式 new Singer (item.Fsinger_mid, item.Fsinger_name) 想一下两种写法那种更好
+        map[key].items.push(new Singer({
+          id: item.Fsinger_mid,
+          name: item.Fsinger_name
+        }))
+      })
+      // 为了得到有序列表,需要处理map
+      /**
+       * 1. 将map,根据title的值分成两份
+       * 2. 字母列表放到ret数组中,title值为 HOT_NAME
+       * 3.
+      */
+      let hot = []
+      let ret = []
+      for (let key in map) {
+        let val = map[key]
+        if (val.title.match('[a-zA-Z]{1}')) {
+          ret.push(val)
+        } else if (val.title === HOT_NAME) {
+          hot.push(val)
+        }
+      }
+      ret.sort((a, b) => {
+        // a.title.charCodeAt(0) - b.title.charCodeAt(0) 如果大于零则返回 true
+        return a.title.charCodeAt(0) - b.title.charCodeAt(0)
+      })
+      // 将数组排序后链接到一起
+      return hot.concat(ret)
+    }
+```
+
+# 类通讯录的组件
+
+创建文件
+/src/base/listview/listview.vue
+
+
+```html
+<template>
+  <scroll class="listview" :data="data">
+    <ul>
+      <li v-for="(group, index) in data" :key="index">
+        <h2 class="list-group-title">{{group.title}}</h2>
+        <ul>
+          <li v-for="(item, index) in group.items" :key="index">
+            <img class="avatar" :src="item.avatar">
+            <span class="name">{{item.name}}</span>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </scroll>
+</template>
+<script>
+import  Scroll from 'basse/scroll/scroll'
+export default {
+  props:{
+    data:{
+      type: Array,
+      default: []
+    }
+  },
+  components: {
+    Scroll
+  }
+}
+</script>
+```
+
+
+## 在singer.vue中引入刚刚定义的组件
+

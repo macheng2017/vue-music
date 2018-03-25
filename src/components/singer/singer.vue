@@ -1,11 +1,17 @@
 <template>
- <div>歌手</div>
+ <div class="singer">
+   <listview :data="singers">
+   </listview>
+</div>
+
 </template>
 
 <script>
 import { getSingerList } from 'api/singer'
 import { ERR_OK } from 'api/config'
 import Singer from 'common/js/singer'
+import Listview from 'base/listview/listview'
+
 const HOT_NAME = '热门'
 const HOT_SINGER_LEN = 10
 export default {
@@ -13,6 +19,9 @@ export default {
     return {
       singers: []
     }
+  },
+  components: {
+    Listview
   },
   created() {
     this._getSingerList()
@@ -23,7 +32,7 @@ export default {
         if (res.code === ERR_OK) {
           console.log(res.data.list)
           this.singers = res.data.list
-          console.log(this._normalizeSinger(res.data.list))
+          this.singers = this._normalizeSinger(res.data.list)
         }
       })
     },
@@ -68,11 +77,18 @@ export default {
       let ret = []
       for (let key in map) {
         let val = map[key]
-        if (val.title.match('[a-z]|[A-Z]{1}')) {
-
+        if (val.title.match('[a-zA-Z]{1}')) {
+          ret.push(val)
+        } else if (val.title === HOT_NAME) {
+          hot.push(val)
         }
       }
-
+      ret.sort((a, b) => {
+        // a.title.charCodeAt(0) - b.title.charCodeAt(0) 如果大于零则返回 true
+        return a.title.charCodeAt(0) - b.title.charCodeAt(0)
+      })
+      // 将数组排序后链接到一起
+      return hot.concat(ret)
     }
   }
 }
