@@ -365,7 +365,9 @@ export function getData (el, name, val) {
     }
   }
 ```
+
 [参考](https://github.com/ustbhuangyi/better-scroll/blob/master/example/components/scroll/scroll.vue)
+
 ## 添加滑动查找
 
 * 监听touchmove事件
@@ -379,11 +381,10 @@ onShortcutTouchMove 的原理
 * 根据data确定滚动到了几个元素
 * 从touchstart 获取一个位置,到touchmove获取一个位置
 
-
- * 在开始的时候获取一个touch
- *  第一次触碰到手指文touchs[0]
- *  需要在两个函数之间共享
- *  在created(){ } 定义一个this.touch
+* 在开始的时候获取一个touch
+* 第一次触碰到手指文touchs[0]
+* 需要在两个函数之间共享
+* 在created(){ } 定义一个this.touch
 
 > 为什么不在data:{}中定义this.touch={} ?
 
@@ -432,3 +433,221 @@ methods: {
 ```
 
 ## 左右联动,右侧字母高亮
+
+### 左右联动原理
+
+* 左右联动,右侧必须知道左侧滚动的位置,根据位置实时计算滚动落在了那个区间
+* 知道了那个区间,需要知道对应右侧的那个索引,那个区间索引应该高亮
+* 需要实时监听y轴滚动的位置
+* 对scroll组件进行拓展
+
+
+
+```js
+ // 用来标识scroll是否监听滚动事件
+    // 一般的列表不用监听,除非是像我们接下来做的左右联动的组建
+    listenScroll: {
+      type: Boolean,
+      default: false
+    }
+// ...
+      this.scroll = new BScroll(this.$refs.wrapper, {
+        probeType: this.probeType,
+        click: this.click
+      })
+      // 需要在初始化的时候监听scroll的滚动事件
+      if (this.listenScroll) {
+        // 拿到 pos 位置,使用回调
+        // 派发事件出去
+        let me = this
+        this.scroll.on('scroll', (pos) => {
+          // 这里的this默认是指向scroll的,我们需要vue实例的this所以,在外面转存一下即可
+          // 这样我们就可以使用vue实例的$emit派发一个scroll事件,将滚动位置pos传递出去,
+          // 在外面需要的位置监听此次派发scroll,即可
+          me.$emit('scroll', pos)
+        })
+      }
+```
+
+### 在组件listview.vue当中添加
+
+* 设置绑定listenScroll,这样就可以将listenScroll=true传递进去
+* 设置监听@scroll="scroll" 这样就可以监听到从scroll组件中派发过来的事件并接收到pos参数
+
+```html
+  <scroll class="listview"
+          :data="data"
+          ref="listview"
+          :listenScroll="listenScroll"
+          @scroll="scroll" >
+
+```
+
+```js
+  created() {
+    this.touch = {}
+    this.listenScroll = true
+    this.listHeight = []
+  },
+  data() {
+    return {
+      scrollY: -1,
+      currentIndex: 0
+
+    }
+  },
+  watch: {
+    data() {
+      setTimeout(()=>{
+        this._calculateHeight()
+      }, 20),
+      scrollY(newY) {
+        // 先对listHeight做一次引用,下面会多次使用
+        const listHeight = this.listHeight
+        // 判断坐标落在那个位置,通过对比上下限
+        for (let i = 0; i < listHeight.length; i++){
+          // 获取下限
+          let height1 = listHeight[i]
+          // 获取上限
+          let height2 = listHeight[i+1]
+          // !height2 不是遍历到最后一个 或者 -newY 往下滚动的时候y值是一个负值 加个-号 变成正值,因为height的计算都是正值 大于下限 且 小于上限
+          if(!height2 || (-newY > height1 && -newY < height2){
+          // 那么这个值就在这个区间
+            this.currentIndex = i
+            console.log(this.currentIndex)
+            return
+        }
+
+      }
+      this.currentIndxe = 0
+    }
+  }
+
+  methods: {
+    // ...
+    scroll(pos) {
+      //1.  这里需要维护一个scrollY,观测一个实时滚动的位置
+      //2.  这个实时滚动的位置是通过一个scroll事件
+      this.scrollY = pos.y
+      //3.  还要维护一个currentIndex 当前显示的第几个字母栏,其对应的什么字母右侧相应的字母应该高亮,默认是0 也就是第一个应该高亮
+      //4.  接下来,就需要实时的获取scrollY,并且计算scrollY落在那个列表位置,而每个group都有高度,需要计算下每个group的高度
+      //5.  需要写一个方法,与饿了么商品列表的左右联动是一样的
+      //6. _calculateHeight(){}这个私有调用时机是在哪? 当我们的data,即传递给listview的data发生变化时我们需要重新计算其高度
+      //7. 添加一个 watch data发生变化了 需要延时计算一下setTimeout, 延时的原因是数据变化到dom的变化是有一个延时,通常是在确保所有手机兼容性都可以,就可以在20毫秒
+      //8.  dom计算好了就可以计算高度,计算每个group的高度this._calculateHeight()
+      //9. 可以在初始化的时候created写一个初始高度[],由_calculateHeight()方法维护
+
+
+      // 我们现在可以观察scrollY了 因为我们通过better-scroll拿到这个scrollY,所以就可以watch它的变化
+
+
+    this._calculateHeight() {
+      // 在这里重新初始化一下
+      this.listHeight = []
+      // 获取group的高度
+      const list = this.$refs.listGroup
+      // 定义开始高度
+      let height = 0
+      // 第一个元素高度也是0
+      this.listHight.push(height)
+      // 使用循环遍历这个list
+      for(let i= 0; i<list.length; i++) {
+        let item = list[i]
+        // 因为它是个dom可以直接用clientHeight去获取高度
+        height += item.clientHeight
+        // 这样就得到从第一个到最后一个元素的所有高度
+        this.listHeight.push(height)
+        // 这样这个scrollY变化的时候我们就可以通过对比scrollY 和这个list知道scrollY落在了第几个区间,然后从而可以得到这个currentIndex
+      }
+    }
+  }
+   },
+```
+
+* 建议私有方法放在下面,共有的或者绑定事件的方法放在上面
+
+>有一个问题,只能监听到手指按住滚动,惯性滚动监听不到?
+
+原因是scroll 滚动 probeType 默认值是1 监听到实时滚动需要改到3
+
+需要传递进去3
+
+**注意组件传值的方法?**
+
+```html
+ :probeType = "probeType"
+
+<scroll class="listview"
+          :data="data"
+          ref="listview"
+          :listenScroll="listenScroll"
+          :probeType = "probeType"
+          @scroll="scroll" >
+```
+
+```js
+  created() {
+    //...
+    this.probeType = 3
+  },
+```
+
+## 现在可以拿到currentIndex了
+
+```html
+<div class="list-shortcut"  @touchstart="onShortcutTouchStart" @touchmove.stop.prevent="onShortcutTouchMove">
+      <ul>
+        <li v-for="(item, index) in shortcutList"
+            class="item"
+            :key="index"
+            :class="{'current': currentIndex==index}"
+            :data-index="index">
+          {{item}}
+        </li>
+      </ul>
+    </div>
+```
+
+添加当后面的值为true时候
+:class="{'current': currentIndex===index}"
+
+[用法参考Class 与 Style 绑定 — Vue.js ](https://cn.vuejs.org/v2/guide/class-and-style.html)
+
+> 问题滚动到最上方的时候高亮消失?
+
+将上面的逻辑拆分
+1. 当滚动到顶部的时候 newY > 0
+2. 在中间部分
+3. 当滚动到底部,且-newY 大于最后一个元素的上限
+
+```js
+ scrollY(newY) {
+      // 先对listHeight做一次引用,下面会多次使用
+      const listHeight = this.listHeight
+
+      // 当滚动到顶部, newY>0
+
+      if (newY > 0) {
+        this.currentIndex = 0
+        return
+      }
+      // 在中间滚动
+
+      // 判断坐标落在那个位置,通过对比上下限
+      for (let i = 0; i < listHeight.length - 1; i++) {
+        // 获取下限
+        let height1 = listHeight[i]
+        // 获取上限
+        let height2 = listHeight[i + 1]
+        // !height2 不是遍历到最后一个 或者 -newY 往下滚动的时候y值是一个负值 加个-号 变成正值,因为height的计算都是正值 大于下限 且 小于上限
+        if (!height2 || (-newY > height1 && -newY < height2)) {
+        // 那么这个值就在这个区间
+          this.currentIndex = i
+          console.log(this.currentIndex)
+          return
+        }
+      }
+      // 当滚动到底部,且-newY 大于最后一个元素的上限
+      this.currentIndxe = listHeight.length - 2
+    }
+  ```

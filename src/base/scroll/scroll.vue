@@ -20,6 +20,12 @@ export default {
     data: {
       type: Array,
       default: null
+    },
+    // 用来标识scroll是否监听滚动事件
+    // 一般的列表不用监听,除非是像我们接下来做的左右联动的组建
+    listenScroll: {
+      type: Boolean,
+      default: false
     }
   },
   beforeCreate() {
@@ -58,6 +64,18 @@ export default {
         probeType: this.probeType,
         click: this.click
       })
+      // 需要在初始化的时候监听scroll的滚动事件
+      if (this.listenScroll) {
+        // 拿到 pos 位置,使用回调
+        // 派发事件出去
+        let me = this
+        this.scroll.on('scroll', (pos) => {
+          // 这里的this默认是指向scroll的,我们需要vue实例的this所以,在外面转存一下即可
+          // 这样我们就可以使用vue实例的$emit派发一个scroll事件,将滚动位置pos传递出去,
+          // 在外面需要的位置监听此次派发scroll,即可
+          me.$emit('scroll', pos)
+        })
+      }
     },
     // 代理方法
     enable() {
